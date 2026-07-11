@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>거래명세서 생성기 (테스트 버전 4.0)</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f0f0f0; }
+        .container { background-color: white; padding: 30px; border-radius: 8px; max-width: 1000px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #002B49; }
+        .info-section { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+        th { background-color: #002B49; color: white; border: 1px solid #ccc; padding: 10px; }
+        td { border: 1px solid #ccc; padding: 10px; vertical-align: top; }
+        
+        select, input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 6px; font-family: inherit; }
+        textarea { resize: vertical; }
+        input[type="number"] { width: 100px; padding: 6px; margin-bottom: 4px; box-sizing: border-box; }
+        
+        .btn { padding: 10px 15px; background-color: #0076CE; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background-color: #005fa3; }
+        .total-section { text-align: right; font-size: 1.2em; font-weight: bold; padding-top: 20px; }
+        .result-box { background-color: #f8fafc; padding: 8px; border-radius: 4px; text-align: right; margin-bottom: 4px; font-size: 13px;}
+        .result-label { display: inline-block; width: 60px; text-align: left; color: #64748b; }
+        .client-group { display: flex; gap: 10px; align-items: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>거래명세서</h1>
+
+        <div class="info-section">
+            <div class="client-group">
+                <label><b>공급받는자 (귀하): </b></label>
+                <select id="clientPreset" onchange="applyClientPreset(this)" style="width: 150px; margin-bottom: 0;">
+                    <option value="">직접 입력...</option>
+                    </select>
+                <input type="text" id="clientName" placeholder="거래처명 입력" style="width:200px; margin-bottom: 0;">
+            </div>
+            <div>
+                <label><b>견적일: </b></label>
+                <input type="date" id="dateInput" style="padding:6px; margin-bottom: 0;">
+            </div>
+        </div>
+
+        <table id="itemTable">
+            <thead>
+                <tr>
+                    <th style="width: 40%">품명 및 세부내역</th>
+                    <th style="width: 25%">입력 방식 및 값</th>
+                    <th style="width: 35%">품목별 계산 결과</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
+
+        <button class="btn" onclick="addRow()">+ 품목 추가하기</button>
+
+        <div class="total-section">
+            <p>공급가액 총합계: <span id="totalAmount">0</span> 원</p>
+            <p>세액 총합계: <span id="taxAmount">0</span> 원</p>
+            <hr>
+            <p>최종 견적금액 (부가세포함): <span id="grandTotal" style="color: #0076CE; font-size: 1.5em;">0</span> 원</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('dateInput').valueAsDate = new Date();
+
+        /* ==========================================
+           여기가 데이터를 수정하는 곳입니다! (DB 역할)
+           ========================================== */
+        
+        // 1. 주거래처 목록
+        const clientList = [
+            "카페노갈레스"
+        ];
+
+        // 2. 자주 쓰는 품목 데이터베이스
+        const frequentItems = {
+            "노갈레스: 그린빈 품질분석 및 관련 기술 위탁": { name: "그린빈 품질분석 및 관련 기술 위탁", details: "", price: 2200000 },
+            "노갈레스: 카페노갈레스 추가 방문": { name: "카페노갈레스 추가 방문", details: "", price: 80000 },
+            "노갈레스: 비즈니스/하베스트": { name: "비즈니스/하베스트 커핑 진행", details: "", price: 100000 },
+            "노갈레스: 브루세션": { name: "브루세션 진행", details: "", price: 100000 },
+            "노갈레스: 세미나 (직접 준비, 진행)": { name: "세미나 (직접 준비, 진행)", details: "준비 과정 및 내용에 따라 상이, 200,000원 기본", price: "" },
+            "노갈레스: 세미나 (지원, 보조)": { name: "세미나 (지원, 보조)", details: "", price: 100000 },
+            "노갈레스: 행사 지원 (진행, 관리)": { name: "행사 지원 (진행, 관리)", details: "", price: 180000 },
+            "노갈레스: 행사 지원 (세팅, 정리)": { name: "행사 지원 (세팅, 정리)", details: "", price: 80000 },
+            "노갈레스: 출장비 (전일)": { name: "출장비 (전일)", details: "", price: 100000 },
+            "노갈레스: 출장비 (반일)": { name: "출장비 (반일)", details: "", price: 60000 },
+            "노갈레스: 로스팅": { name: "로스팅", details: "", price: 4000 },
+            "노갈레스: 배송료": { name: "배송료", details: "", price: 4000 },
+            "노갈레스: 교통비 (철도, 버스)": { name: "교통비 (철도, 버스)", details: "", price: "" },
+            "노갈레스: 교통비 (택시)": { name: "교통비 (택시)", details: "", price: "" },
+            "노갈레스: 소모품": { name: "소모품", details: "", price: "" },
+            "노갈레스: 식비": { name: "식비", details: "", price: "" },
+            "로스팅 솔루션": { name: "로스팅 솔루션 서비스", details: "", price: 600000 },
+            "로스팅 점검": { name: "로스팅 점검 서비스", details: "", price: 200000 },
+            "출장비 (서울, 과천, 광주, 구리, 남양주, 성남, 하남)": { name: "출장비", details: "", price: 60000 },
+            "출장비 (인천, 경기 비수도권, 충청)": { name: "출장비", details: "", price: 80000 },
+            "출장비 (전북, 경북, 광역시)": { name: "출장비", details: "", price: 120000 },
+            "출장비 (경남, 전남)": { name: "출장비", details: "", price: 150000 },
+            "출장비 (제주도)": { name: "출장비", details: "항공료, 숙박료에 따라 변동", price: 150000 }
+        };
+
+        /* ========================================== */
+
+
+        // 주거래처 드롭다운 초기화 세팅
+        const clientSelect = document.getElementById('clientPreset');
+        clientList.forEach(client => {
+            const option = document.createElement('option');
+            option.value = client;
+            option.textContent = client;
+            clientSelect.appendChild(option);
+        });
+
+        function applyClientPreset(selectObj) {
+            const clientInput = document.getElementById('clientName');
+            clientInput.value = selectObj.value; // 선택한 값을 텍스트 창에 입력
+        }
+
+        // 품목 드롭다운을 위한 옵션 HTML 문자열 생성
+        let itemOptionsHTML = '<option value="">-- 품명 선택 (직접 입력) --</option>';
+        for (const key in frequentItems) {
+            itemOptionsHTML += `<option value="${key}">${key}</option>`;
+        }
+
+        const rowHTML = `
+            <td>
+                <select class="item-select" style="background-color: #f8fafc;" onchange="applyItemPreset(this)">
+                    ${itemOptionsHTML}
+                </select>
+                <input type="text" class="actual-item-name" placeholder="품명 (명세서 표시용)">
+                <textarea class="item-details" rows="3" placeholder="세부내역 입력 (엔터로 줄바꿈)"></textarea>
+            </td>
+            <td>
+                <select class="calc-mode" onchange="toggleMode(this)">
+                    <option value="price">수량 / 단가 입력</option>
+                    <option value="total">총액 입력 (부가세 역산)</option>
+                </select>
+                <div class="input-price-mode">
+                    수량: <input type="number" class="qty" value="1" min="1" oninput="calculate()"><br>
+                    단가: <input type="number" class="price" value="0" oninput="calculate()">
+                </div>
+                <div class="input-total-mode" style="display:none;">
+                    총액: <input type="number" class="manual-total" value="0" oninput="calculate()">
+                </div>
+            </td>
+            <td>
+                <div class="result-box"><span class="result-label">공급가액:</span> <strong class="row-supply">0</strong> 원</div>
+                <div class="result-box"><span class="result-label">세액(10%):</span> <strong class="row-tax">0</strong> 원</div>
+                <div class="result-box"><span class="result-label">품목총액:</span> <strong class="row-total">0</strong> 원</div>
+            </td>
+        `;
+
+        function addRow() {
+            const tbody = document.getElementById('tableBody');
+            const newRow = tbody.insertRow();
+            newRow.innerHTML = rowHTML;
+        }
+
+        // 품목 선택 시 데이터 덮어쓰기 로직
+        function applyItemPreset(selectElement) {
+            const td = selectElement.parentElement;
+            const nameInput = td.querySelector('.actual-item-name');
+            const detailsTextarea = td.querySelector('.item-details');
+            
+            // 오른쪽 칸(수량/단가) 조작을 위해 가져옴
+            const modeSelect = td.nextElementSibling.querySelector('.calc-mode');
+            const priceInput = td.nextElementSibling.querySelector('.price');
+            const qtyInput = td.nextElementSibling.querySelector('.qty');
+
+            const selectedKey = selectElement.value;
+
+            if (selectedKey && frequentItems[selectedKey]) {
+                const itemData = frequentItems[selectedKey];
+                
+                // 1. 품명과 세부내역 자동 채우기
+                nameInput.value = itemData.name;
+                detailsTextarea.value = itemData.details;
+
+                // 2. 단가 자동 채우기 (단가가 비어있으면 빈칸 처리)
+                modeSelect.value = 'price'; // 기본 입력 모드로 변경
+                toggleMode(modeSelect); // 모드 UI 갱신
+
+                qtyInput.value = 1; // 수량은 항상 1로 초기화
+                if(itemData.price !== "") {
+                    priceInput.value = itemData.price;
+                } else {
+                    priceInput.value = ""; // 직접 입력해야 하는 항목은 비워둠
+                }
+            } else {
+                // '-- 품명 선택 --' 을 고르면 칸을 비워줍니다.
+                nameInput.value = '';
+                detailsTextarea.value = '';
+                priceInput.value = '';
+            }
+            
+            calculate(); // 값이 바뀌었으니 재계산
+        }
+
+        function toggleMode(selectElement) {
+            const td = selectElement.parentElement;
+            const priceModeDiv = td.querySelector('.input-price-mode');
+            const totalModeDiv = td.querySelector('.input-total-mode');
+            
+            if (selectElement.value === 'price') {
+                priceModeDiv.style.display = 'block';
+                totalModeDiv.style.display = 'none';
+            } else {
+                priceModeDiv.style.display = 'none';
+                totalModeDiv.style.display = 'block';
+            }
+            calculate();
+        }
+
+        function calculate() {
+            let sumSupply = 0;
+            let sumTax = 0;
+            const rows = document.querySelectorAll('#tableBody tr');
+
+            rows.forEach(row => {
+                const mode = row.querySelector('.calc-mode').value;
+                let supply = 0;
+                let tax = 0;
+                let total = 0;
+
+                if (mode === 'price') {
+                    const qty = Number(row.querySelector('.qty').value) || 0;
+                    const price = Number(row.querySelector('.price').value) || 0;
+                    supply = qty * price;
+                    tax = Math.floor(supply * 0.1);
+                    total = supply + tax;
+                } else {
+                    const manualTotal = Number(row.querySelector('.manual-total').value) || 0;
+                    total = manualTotal;
+                    supply = Math.round(total / 1.1);
+                    tax = total - supply;
+                }
+
+                row.querySelector('.row-supply').innerText = supply.toLocaleString();
+                row.querySelector('.row-tax').innerText = tax.toLocaleString();
+                row.querySelector('.row-total').innerText = total.toLocaleString();
+
+                sumSupply += supply;
+                sumTax += tax;
+            });
+
+            document.getElementById('totalAmount').innerText = sumSupply.toLocaleString();
+            document.getElementById('taxAmount').innerText = sumTax.toLocaleString();
+            document.getElementById('grandTotal').innerText = (sumSupply + sumTax).toLocaleString();
+        }
+
+        window.onload = addRow;
+    </script>
+</body>
+</html>
