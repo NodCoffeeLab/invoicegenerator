@@ -11,9 +11,11 @@
         .container { background-color: white; padding: 30px; border-radius: 8px; max-width: 1000px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         h1 { text-align: center; color: #002B49; }
         .info-section { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
-        th { background-color: #002B49; color: white; border: 1px solid #ccc; padding: 10px; }
-        td { border: 1px solid #ccc; padding: 10px; vertical-align: top; }
+        
+        /* 입력기 영역에만 적용되는 스타일 (출력 양식과 분리) */
+        #inputArea table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+        #inputArea th { background-color: #002B49; color: white; border: 1px solid #ccc; padding: 10px; }
+        #inputArea td { border: 1px solid #ccc; padding: 10px; vertical-align: top; }
         
         select, input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 6px; font-family: inherit; }
         textarea { resize: vertical; }
@@ -25,6 +27,10 @@
         .result-box { background-color: #f8fafc; padding: 8px; border-radius: 4px; text-align: right; margin-bottom: 4px; font-size: 13px;}
         .result-label { display: inline-block; width: 60px; text-align: left; color: #64748b; }
         .client-group { display: flex; gap: 10px; align-items: center; }
+
+        /* 출력용 숨김 영역 내 테이블 기본 속성 초기화 */
+        #printTarget table { border-collapse: collapse; border-spacing: 0; }
+        #printTarget th, #printTarget td { margin: 0; }
     </style>
 </head>
 <body>
@@ -78,7 +84,7 @@
             <div style="width: 45%;">
                 <h1 style="font-size: 38px; margin: 0 0 20px 0; letter-spacing: -2px; color: #000; text-align: left;">거래명세서</h1>
                 <div style="font-size: 20px; font-weight: bold; margin-bottom: 20px;"><span id="outClientName"></span> 귀하</div>
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 0;">
+                <table style="width: 100%; font-size: 12px; margin-bottom: 0;">
                     <tr>
                         <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 0; width: 80px;">견적일</td>
                         <td style="border-bottom: 1px dotted #000; padding: 4px 0;" id="outDate"></td>
@@ -90,7 +96,7 @@
                 </table>
             </div>
             <div style="width: 50%;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px; border-top: 1px solid #000; margin-bottom: 0;">
+                <table style="width: 100%; font-size: 12px; border-top: 1px solid #000; margin-bottom: 0;">
                     <tr>
                         <th rowspan="4" style="background-color: #e5e5e5; font-weight: bold; width: 60px; border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 4px; text-align: center; color: #000;">공급자</th>
                         <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 8px; width: 60px;">상호</td>
@@ -117,7 +123,7 @@
             <div style="font-size: 28px; font-weight: bold; color: #000; letter-spacing: 1px;">₩<span id="outGrandTotal"></span></div>
         </div>
 
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px;">
+        <table style="width: 100%; font-size: 12px; margin-bottom: 20px;">
             <thead>
                 <tr style="border-top: 2px solid #000; border-bottom: 1px solid #000; background-color: #e5e5e5;">
                     <th style="padding: 8px; text-align: left; color: #000; font-weight: bold;">품명</th>
