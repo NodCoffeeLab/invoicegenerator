@@ -354,59 +354,35 @@ function savePDF() {
             doc.save("거래명세서_" + document.getElementById('clientName').value + ".pdf");
         }
 
+// savePNG 함수 안의 rowsHtml을 만드는 부분을 이렇게 정돈하세요
 async function savePNG() {
-    // 1. 캡처용 임시 영역을 가져옵니다.
     const target = document.getElementById('printTarget');
     const printContent = document.getElementById('printContent');
     
-    // 2. 입력된 데이터를 바탕으로 깔끔한 표 양식을 만듭니다.
     let rowsHtml = '';
     document.querySelectorAll('#tableBody tr').forEach(row => {
         const name = row.querySelector('.actual-item-name').value;
         const total = row.querySelector('.row-total').innerText;
-        if(name) { // 품명이 비어있지 않은 경우만 추가
-           // 기존 rowsHtml 생성 부분 수정
-rowsHtml += `<tr>
-    <td style="padding: 10px; border: 1px solid #000;">
-        <strong>${name}</strong><br>
-        <span style="font-size: 12px; color: #555;">${row.querySelector('.item-details').value}</span>
-    </td>
-    <td style="padding: 10px; border: 1px solid #000; text-align: right;">${total} 원</td>
-</tr>`;
+        if(name) {
+            rowsHtml += `<tr>
+                <td style="padding: 10px; border: 1px solid #000;"><strong>${name}</strong><br><span style="font-size: 12px;">${row.querySelector('.item-details').value}</span></td>
+                <td style="padding: 10px; border: 1px solid #000; text-align: right;">${total} 원</td>
+            </tr>`;
         }
     });
 
     printContent.innerHTML = `
-        <p style="font-size: 16px;">수신: ${document.getElementById('clientName').value}</p>
-        <table style="width:100%; border-collapse:collapse; font-family: 'Malgun Gothic';">
-            <thead>
-                <tr style="background-color: #f2f2f2;">
-                    <th style="padding: 10px; border: 1px solid #000;">품명</th>
-                    <th style="padding: 10px; border: 1px solid #000;">금액</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${rowsHtml}
-            </tbody>
-        </table>
-        <p style="text-align: right; font-size: 18px; font-weight: bold;">
-            합계: ${document.getElementById('grandTotal').innerText} 원
-        </p>
+        <p>수신: ${document.getElementById('clientName').value}</p>
+        <table style="width:100%; border-collapse:collapse;">${rowsHtml}</table>
+        <p style="text-align: right; font-weight: bold;">합계: ${document.getElementById('grandTotal').innerText} 원</p>
     `;
-
-    // 3. 캡처 실행 (화면에 잠깐 보여주고 바로 캡처 후 숨김)
+    
     target.style.display = 'block';
-    
-    const canvas = await html2canvas(target, {
-        backgroundColor: '#ffffff',
-        scale: 2 // 화질을 더 선명하게
-    });
-    
+    const canvas = await html2canvas(target, { scale: 2 });
     target.style.display = 'none';
     
-    // 4. 파일 다운로드
     const link = document.createElement('a');
-    link.download = "거래명세서_양식.png";
+    link.download = "거래명세서.png";
     link.href = canvas.toDataURL("image/png");
     link.click();
 }
