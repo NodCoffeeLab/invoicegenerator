@@ -265,40 +265,47 @@ function saveToExcel() {
     const dateVal = document.getElementById('dateInput').value.replace(/-/g, '');
     const fileName = `거래명세서_${client}_${dateVal}.xlsx`;
 
-    // 2. 엑셀 데이터 초기화 (헤더)
+    // 2. 상단 헤더 정보 및 총합계 계산
+    const totalSupply = document.getElementById('totalAmount').innerText.replace(/,/g, '');
+    const totalTax = document.getElementById('taxAmount').innerText.replace(/,/g, '');
+    const grandTotal = document.getElementById('grandTotal').innerText.replace(/,/g, '');
+
+    // 3. 엑셀 전체 구조 생성
+    // 1행: 헤더 타이틀, 2행: 실제 데이터(A, B열 및 J, K, L열)
     let rows = [
-        ['품명', '세부내역', '수량', '단가', '공급가액', '세액', '합계']
+        ['거래처명', '공급일자', '품명', '세부내역', '수량', '단가', '공급가액', '세액', '합계', '공급가액 총합계', '세액 총합계', '최종 견적금액'],
+        [client, document.getElementById('dateInput').value, '', '', '', '', '', '', '', totalSupply, totalTax, grandTotal]
     ];
 
-    // 3. 테이블 바디 데이터만 정확히 추출
+    // 4. 품목 데이터 추가 (3행부터 시작)
     document.querySelectorAll('#tableBody tr').forEach(row => {
-        // 입력 방식에 따라 값 추출
         const mode = row.querySelector('.calc-mode').value;
         const qty = row.querySelector('.qty').value || 0;
         const price = row.querySelector('.price').value || 0;
-        const manualTotal = row.querySelector('.manual-total').value || 0;
-        
-        // 결과값 추출 (콤마 제거 후 숫자만)
         const supply = row.querySelector('.row-supply').innerText.replace(/,/g, '');
         const tax = row.querySelector('.row-tax').innerText.replace(/,/g, '');
         const total = row.querySelector('.row-total').innerText.replace(/,/g, '');
 
         rows.push([
-            row.querySelector('.actual-item-name').value,      // 품명
-            row.querySelector('.item-details').value,          // 세부내역
-            mode === 'price' ? qty : '-',                      // 수량
-            mode === 'price' ? price : '-',                    // 단가
-            supply,
-            tax,
-            total
+            '', '', // A, B열 비움
+            row.querySelector('.actual-item-name').value, // C열
+            row.querySelector('.item-details').value,     // D열
+            mode === 'price' ? qty : '-',                 // E열
+            mode === 'price' ? price : '-',               // F열
+            supply,                                       // G열
+            tax,                                          // H열
+            total                                         // I열
         ]);
     });
 
-    // 4. 엑셀 생성
+    // 5. 엑셀 생성
     const ws = XLSX.utils.aoa_to_sheet(rows);
     
-    // 열 너비 자동 조정 (선택 사항이지만 보기 좋습니다)
-    ws['!cols'] = [{wch: 20}, {wch: 30}, {wch: 10}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}];
+    // 열 너비 조정
+    ws['!cols'] = [
+        {wch: 15}, {wch: 15}, {wch: 20}, {wch: 30}, {wch: 10}, 
+        {wch: 10}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 20}
+    ];
     
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "거래명세서");
