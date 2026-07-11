@@ -371,3 +371,37 @@ function savePDF() {
     </script>
 </body>
 </html>
+<div id="printTarget" style="display:none; padding: 40px; background: white; width: 800px; font-family: 'Malgun Gothic';">
+    <h1 style="text-align: center;">거래명세서</h1>
+    <div id="printContent"></div> 
+</div>
+
+<script>
+async function savePNG() {
+    const printContent = document.getElementById('printContent');
+    const target = document.getElementById('printTarget');
+    
+    // 1. 현재 입력된 데이터를 바탕으로 출력용 HTML을 동적으로 생성
+    // (여기서 입력창 스타일이 아닌, 표 스타일로 구성)
+    printContent.innerHTML = `
+        <p>수신: ${document.getElementById('clientName').value}</p>
+        <table border="1" style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr><th>품명</th><th>수량</th><th>단가</th><th>합계</th></tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    `;
+
+    // 2. 캡처
+    target.style.display = 'block'; // 잠시 보여주고
+    const canvas = await html2canvas(target);
+    target.style.display = 'none'; // 다시 숨김
+    
+    const link = document.createElement('a');
+    link.download = "거래명세서_양식.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+}
+</script>
