@@ -320,13 +320,49 @@ function saveToExcel() {
 function savePDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.text("거래명세서", 10, 10);
-            doc.autoTable({ html: '#itemTable' });
-            doc.save("거래명세서.pdf");
+            
+            // 폰트 설정 (한글 깨짐 방지: 기본 폰트 사용 시 한글이 안 나올 경우를 대비)
+            doc.setFont("helvetica", "normal");
+            
+            // 헤더
+            doc.setFontSize(20);
+            doc.text("거 래 명 세 서", 105, 20, { align: "center" });
+            
+            // 기본 정보
+            doc.setFontSize(12);
+            doc.text("공급받는자: " + document.getElementById('clientName').value, 20, 40);
+            doc.text("견적일: " + document.getElementById('dateInput').value, 20, 50);
+
+            // 표 데이터 가져오기
+            const rows = [];
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                rows.push([
+                    row.querySelector('.actual-item-name').value,
+                    row.querySelector('.row-supply').innerText,
+                    row.querySelector('.row-tax').innerText,
+                    row.querySelector('.row-total').innerText
+                ]);
+            });
+
+            // 표 생성
+            doc.autoTable({
+                startY: 60,
+                head: [['품명', '공급가액', '세액', '합계']],
+                body: rows,
+            });
+
+            doc.save("거래명세서_" + document.getElementById('clientName').value + ".pdf");
         }
 
+        // PNG 내보내기 수정 (정밀 캡처)
         async function savePNG() {
-            const canvas = await html2canvas(document.getElementById('printableArea'));
+            const element = document.getElementById('printableArea');
+            const canvas = await html2canvas(element, {
+                backgroundColor: '#ffffff',
+                scale: 2, // 해상도 높임
+                logging: false
+            });
+            
             const link = document.createElement('a');
             link.download = "거래명세서.png";
             link.href = canvas.toDataURL("image/png");
