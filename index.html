@@ -56,6 +56,11 @@
         </table>
 
         <button class="btn" onclick="addRow()">+ 품목 추가하기</button>
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ccc; text-align: center;">
+    <button class="btn" style="background-color: #28a745;" onclick="saveToExcel()">엑셀 내보내기</button>
+    <button class="btn" style="background-color: #999; cursor: not-allowed;" disabled>PDF 내보내기</button>
+    <button class="btn" style="background-color: #999; cursor: not-allowed;" disabled>PNG 내보내기</button>
+</div>
 
         <div class="total-section">
             <p>공급가액 총합계: <span id="totalAmount">0</span> 원</p>
@@ -254,6 +259,34 @@
         }
 
         window.onload = addRow;
+        function saveToExcel() {
+    // 1. 파일 이름 생성 로직 (거래명세서_거래처명_YYMMDD.xlsx)
+    const client = document.getElementById('clientName').value || "미지정거래처";
+    const dateVal = document.getElementById('dateInput').value.replace(/-/g, '');
+    const dateFormatted = dateVal.length >= 8 ? dateVal.substring(2) : dateVal; // YYYYMMDD -> YYMMDD
+    const fileName = `거래명세서_${client}_${dateFormatted}.xlsx`;
+
+    // 2. 엑셀 헤더 및 데이터 구성
+    let data = [['품명', '세부내역', '수량', '단가', '공급가액', '세액', '합계']];
+    
+    document.querySelectorAll('#tableBody tr').forEach(row => {
+        data.push([
+            row.querySelector('.actual-item-name').value,
+            row.querySelector('.item-details').value,
+            row.querySelector('.qty')?.value || row.querySelector('.manual-total') ? '-' : '0',
+            row.querySelector('.price')?.value || '-',
+            row.querySelector('.row-supply').innerText.replace(/,/g, ''),
+            row.querySelector('.row-tax').innerText.replace(/,/g, ''),
+            row.querySelector('.row-total').innerText.replace(/,/g, '')
+        ]);
+    });
+
+    // 3. 엑셀 파일 생성
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "거래명세서");
+    XLSX.writeFile(wb, fileName);
+}
     </script>
 </body>
 </html>
