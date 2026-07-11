@@ -80,70 +80,69 @@
                 <div style="font-size: 20px; font-weight: bold; margin-bottom: 20px;"><span id="outClientName"></span> 귀하</div>
                 <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 0;">
                     <tr>
-                        <td style="border-top: 1px dotted #000; border-bottom: 1px dotted #000; border-left: none; border-right: none; padding: 4px 0; width: 80px;">견적일</td>
-                        <td style="border-top: 1px dotted #000; border-bottom: 1px dotted #000; border-left: none; border-right: none; padding: 4px 0;" id="outDate"></td>
+                        <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 0; width: 80px;">견적일</td>
+                        <td style="border-bottom: 1px dotted #000; padding: 4px 0;" id="outDate"></td>
                     </tr>
                     <tr>
-                        <td style="border-bottom: 1px dotted #000; border-left: none; border-right: none; padding: 4px 0;">유효기간</td>
-                        <td style="border-bottom: 1px dotted #000; border-left: none; border-right: none; padding: 4px 0;">견적일로부터 1개월</td>
+                        <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 0;">유효기간</td>
+                        <td style="border-bottom: 1px dotted #000; padding: 4px 0;">견적일로부터 1개월</td>
                     </tr>
                 </table>
             </div>
             <div style="width: 50%;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px; border-top: 2px solid #000; margin-bottom: 0;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px; border-top: 1px solid #000; margin-bottom: 0;">
                     <tr>
-                        <th rowspan="4" style="background-color: #e9ecef; width: 60px; border-bottom: 1px solid #000; border-left: none; border-right: 1px dotted #000; padding: 4px; text-align: center; color: #000; font-weight: normal;">공급자</th>
-                        <td style="border-bottom: 1px dotted #000; border-left: none; border-right: none; padding: 4px 8px; width: 60px;">상호</td>
-                        <td style="border-bottom: 1px dotted #000; border-left: none; border-right: none; padding: 4px 8px;">로스터리 노드 <span style="margin-left:15px;">대표자</span><span style="float:right;">김규원</span></td>
+                        <th rowspan="4" style="background-color: #e5e5e5; font-weight: bold; width: 60px; border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 4px; text-align: center; color: #000;">공급자</th>
+                        <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 8px; width: 60px;">상호</td>
+                        <td style="border-bottom: 1px dotted #000; padding: 4px 8px;">로스터리 노드 <span style="margin-left:15px; font-weight: bold;">대표자</span><span style="float:right;">김규원</span></td>
                     </tr>
                     <tr>
-                        <td style="border-bottom: 1px dotted #000; border-left: none; border-right: none; padding: 4px 8px;">등록번호</td>
-                        <td style="border-bottom: 1px dotted #000; border-left: none; border-right: none; padding: 4px 8px;">336-76-00113</td>
+                        <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 8px;">등록번호</td>
+                        <td style="border-bottom: 1px dotted #000; padding: 4px 8px;">336-76-00113</td>
                     </tr>
                     <tr>
-                        <td style="border-bottom: 1px dotted #000; border-left: none; border-right: none; padding: 4px 8px; vertical-align: top;">주소</td>
-                        <td style="border-bottom: 1px dotted #000; border-left: none; border-right: none; padding: 4px 8px;">서울특별시 성동구 성수이로 45 지하층<br>로스터리 노드</td>
+                        <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 8px; vertical-align: top;">주소</td>
+                        <td style="border-bottom: 1px dotted #000; padding: 4px 8px;">서울특별시 성동구 성수이로 45 지하층<br>로스터리 노드</td>
                     </tr>
                     <tr>
-                        <td style="border-bottom: 1px solid #000; border-left: none; border-right: none; padding: 4px 8px;">전화</td>
-                        <td style="border-bottom: 1px solid #000; border-left: none; border-right: none; padding: 4px 8px;">010-2969-9699</td>
+                        <td style="font-weight: bold; border-bottom: 1px solid #000; padding: 4px 8px;">전화</td>
+                        <td style="border-bottom: 1px solid #000; padding: 4px 8px;">010-2969-9699</td>
                     </tr>
                 </table>
             </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; background-color: #f4f4f4; padding: 15px 20px; margin-bottom: 20px;">
-            <div style="font-size: 22px; font-weight: bold; color: #000;">견적금액 <span style="font-size: 15px; font-weight: normal;">(공급가액)</span></div>
-            <div style="font-size: 32px; font-weight: bold; color: #000; letter-spacing: 1px;">₩<span id="outGrandTotal"></span></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; background-color: #e5e5e5; padding: 8px 20px; margin-bottom: 20px;">
+            <div style="font-size: 20px; font-weight: bold; color: #000;">견적금액 <span style="font-size: 14px; font-weight: normal;">(공급가액)</span></div>
+            <div style="font-size: 28px; font-weight: bold; color: #000; letter-spacing: 1px;">₩<span id="outGrandTotal"></span></div>
         </div>
 
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px;">
             <thead>
-                <tr style="border-top: 2px solid #000; border-bottom: 1px solid #000;">
-                    <th style="padding: 8px; text-align: left; background: none; color: #000; border: none; font-weight: bold;">품명</th>
-                    <th style="padding: 8px; text-align: center; background: none; color: #000; border: none; width: 60px; font-weight: bold;">규격</th>
-                    <th style="padding: 8px; text-align: center; background: none; color: #000; border: none; width: 60px; font-weight: bold;">수량</th>
-                    <th style="padding: 8px; text-align: center; background: none; color: #000; border: none; width: 90px; font-weight: bold;">단가</th>
-                    <th style="padding: 8px; text-align: right; background: none; color: #000; border: none; width: 100px; font-weight: bold;">공급가액</th>
-                    <th style="padding: 8px; text-align: right; background: none; color: #000; border: none; width: 90px; font-weight: bold;">세액</th>
+                <tr style="border-top: 2px solid #000; border-bottom: 1px solid #000; background-color: #e5e5e5;">
+                    <th style="padding: 8px; text-align: left; color: #000; font-weight: bold;">품명</th>
+                    <th style="padding: 8px; text-align: right; color: #000; width: 60px; font-weight: bold;">수량</th>
+                    <th style="padding: 8px; text-align: right; color: #000; width: 90px; font-weight: bold;">단가</th>
+                    <th style="padding: 8px; text-align: right; color: #000; width: 100px; font-weight: bold;">공급가액</th>
+                    <th style="padding: 8px; text-align: right; color: #000; width: 90px; font-weight: bold;">세액</th>
                 </tr>
             </thead>
             <tbody id="outTableBody">
                 </tbody>
             <tfoot>
-                <tr style="border-top: 1px solid #000; border-bottom: 2px solid #000; background-color: #e9ecef; font-weight: bold;">
-                    <td colspan="4" style="padding: 8px; border: none;">합계</td>
-                    <td style="padding: 8px; text-align: right; border: none;" id="outTotalSupply"></td>
-                    <td style="padding: 8px; text-align: right; border: none;" id="outTotalTax"></td>
+                <tr style="border-top: 1px solid #000; border-bottom: 2px solid #000; font-weight: bold;">
+                    <td colspan="3" style="padding: 8px; text-align: center;">합계</td>
+                    <td style="padding: 8px; text-align: right;" id="outTotalSupply"></td>
+                    <td style="padding: 8px; text-align: right;" id="outTotalTax"></td>
                 </tr>
             </tfoot>
         </table>
 
         <div style="font-size: 12px; border: 1px solid #000; border-left: none; border-right: none;">
-            <div style="background-color: #dcdcdc; padding: 4px 8px; font-weight: bold; border-bottom: 1px solid #000;">기타</div>
+            <div style="background-color: #e5e5e5; padding: 4px 8px; font-weight: bold; border-bottom: 1px solid #000;">기타</div>
             <div style="padding: 8px; border-bottom: 1px dotted #000;">* 입금계좌 : 국민은행 104301-04-438865 (예금주: 김규원(로스터리 노드) )</div>
             <div style="padding: 12px; border-bottom: 1px dotted #000;"></div>
-            <div style="padding: 12px; border-bottom: 1px dotted #000;"></div>
+            <div style="padding: 12px;"></div>
         </div>
     </div>
 
@@ -413,15 +412,14 @@
                 if(name) {
                     rowsHtml += `
                     <tr>
-                        <td style="padding: 8px; border-bottom: 1px dotted #000; border-left: none; border-right: none; vertical-align: top;">
-                            <div style="font-weight: normal;">${name}</div>
+                        <td style="padding: 8px; border-bottom: 1px dotted #000; vertical-align: top;">
+                            <div style="font-weight: bold;">${name}</div>
                             <div style="font-size: 11px; margin-top: 4px;">${details}</div>
                         </td>
-                        <td style="padding: 8px; border-bottom: 1px dotted #000; border-left: none; border-right: none; text-align: center; vertical-align: top;"></td>
-                        <td style="padding: 8px; border-bottom: 1px dotted #000; border-left: none; border-right: none; text-align: center; vertical-align: top;">${qty}</td>
-                        <td style="padding: 8px; border-bottom: 1px dotted #000; border-left: none; border-right: none; text-align: right; vertical-align: top;">${price}</td>
-                        <td style="padding: 8px; border-bottom: 1px dotted #000; border-left: none; border-right: none; text-align: right; vertical-align: top;">${supply}</td>
-                        <td style="padding: 8px; border-bottom: 1px dotted #000; border-left: none; border-right: none; text-align: right; vertical-align: top;">${tax}</td>
+                        <td style="padding: 8px; border-bottom: 1px dotted #000; text-align: right; vertical-align: top;">${qty}</td>
+                        <td style="padding: 8px; border-bottom: 1px dotted #000; text-align: right; vertical-align: top;">${price}</td>
+                        <td style="padding: 8px; border-bottom: 1px dotted #000; text-align: right; vertical-align: top;">${supply}</td>
+                        <td style="padding: 8px; border-bottom: 1px dotted #000; text-align: right; vertical-align: top;">${tax}</td>
                     </tr>`;
                 }
             });
