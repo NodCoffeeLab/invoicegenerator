@@ -2,6 +2,10 @@
 <html lang="ko">
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <meta charset="UTF-8">
     <title>거래명세서 생성기 (테스트 버전 4.0)</title>
     <style>
@@ -26,8 +30,8 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>거래명세서 생성기 이미지 내보내기 테스트</h1>
+    <div class="container" id="printableArea">
+        <h1>거래명세서 생성기 테스트</h1>
 
         <div class="info-section">
             <div class="client-group">
@@ -258,60 +262,9 @@
             document.getElementById('grandTotal').innerText = (sumSupply + sumTax).toLocaleString();
         }
 
+        
         window.onload = addRow;
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
-<script>
-// PDF/PNG 내보내기 함수
-function savePDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4');
-
-    // 1. 고정 정보 입력 (기존 PDF 양식 참고)
-    doc.setFont("MalgunGothic", "normal"); // 폰트 설정 필요시
-    doc.text("거래명세서", 105, 20, { align: 'center' });
-    doc.text("공급받는자: " + document.getElementById('clientName').value + " 귀하", 20, 35);
-    doc.text("견적일: " + document.getElementById('dateInput').value, 150, 35);
-
-    // 2. 표 데이터 구성
-    const tableData = [];
-    document.querySelectorAll('#tableBody tr').forEach(row => {
-        tableData.push([
-            row.querySelector('.actual-item-name').value,
-            row.querySelector('.item-details').value,
-            row.querySelector('.row-supply').innerText,
-            row.querySelector('.row-tax').innerText,
-            row.querySelector('.row-total').innerText
-        ]);
-    });
-
-    // 3. 표 생성
-    doc.autoTable({
-        startY: 45,
-        head: [['품명', '세부내역', '공급가액', '세액', '합계']],
-        body: tableData,
-    });
-
-    // 4. 하단 고정 정보 (공급자 정보 및 계좌)
-    let finalY = doc.lastAutoTable.finalY + 10;
-    doc.text("공급자: 로스터리 노드 | 대표 김규원", 20, finalY);
-    doc.text("입금계좌: 국민은행 104301-04-438865 (예금주: 김규원)", 20, finalY + 7);
-
-    // 5. 저장
-    const client = document.getElementById('clientName').value;
-    const dateVal = document.getElementById('dateInput').value.replace(/-/g, '');
-    doc.save(`거래명세서_${client}_${dateVal}.pdf`);
-}
-
-// PNG는 html2canvas 사용 (기존 방식 유지)
-async function savePNG() {
-    const canvas = await html2canvas(document.getElementById('printableArea'));
-    const link = document.createElement('a');
-    link.download = `거래명세서_${document.getElementById('clientName').value}_${document.getElementById('dateInput').value.replace(/-/g, '')}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-}
-</script>
 function saveToExcel() {
     // 1. 파일 이름 설정
     const client = document.getElementById('clientName').value || "거래처명";
@@ -364,6 +317,21 @@ function saveToExcel() {
     XLSX.utils.book_append_sheet(wb, ws, "거래명세서");
     XLSX.writeFile(wb, fileName);
 }
+function savePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("거래명세서", 10, 10);
+            doc.autoTable({ html: '#itemTable' });
+            doc.save("거래명세서.pdf");
+        }
+
+        async function savePNG() {
+            const canvas = await html2canvas(document.getElementById('printableArea'));
+            const link = document.createElement('a');
+            link.download = "거래명세서.png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        }
     </script>
 </body>
 </html>
