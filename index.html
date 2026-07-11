@@ -35,7 +35,7 @@
 </head>
 <body>
     <div class="container" id="inputArea">
-        <h1>거래명세서 생성기</h1>
+        <h1>거래명세서 생성기 2026.7.11</h1>
 
         <div class="info-section">
             <div class="client-group">
@@ -84,37 +84,43 @@
             <div style="width: 45%;">
                 <h1 style="font-size: 38px; margin: 0 0 20px 0; letter-spacing: -2px; color: #000; text-align: left;">거래명세서</h1>
                 <div style="font-size: 20px; font-weight: bold; margin-bottom: 20px;"><span id="outClientName"></span> 귀하</div>
-                <table style="width: 100%; font-size: 12px; margin-bottom: 0;">
-                    <tr>
-                        <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 0; width: 80px;">견적일</td>
-                        <td style="border-bottom: 1px dotted #000; padding: 4px 0;" id="outDate"></td>
+                <table style="width: 250px; font-size: 12px; margin-bottom: 0;">
+                    <tr style="border-bottom: 1px dotted #000;">
+                        <td style="font-weight: bold; padding: 4px 0; width: 80px;">견적일</td>
+                        <td style="padding: 4px 0;" id="outDate"></td>
                     </tr>
-                    <tr>
-                        <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 0;">유효기간</td>
-                        <td style="border-bottom: 1px dotted #000; padding: 4px 0;">견적일로부터 1개월</td>
+                    <tr style="border-bottom: 1px dotted #000;">
+                        <td style="font-weight: bold; padding: 4px 0;">유효기간</td>
+                        <td style="padding: 4px 0;">견적일로부터 1개월</td>
                     </tr>
                 </table>
             </div>
             <div style="width: 50%;">
-                <table style="width: 100%; font-size: 12px; border-top: 1px solid #000; margin-bottom: 0;">
-                    <tr>
-                        <th rowspan="4" style="background-color: #e5e5e5; font-weight: bold; width: 60px; border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 4px; text-align: center; color: #000;">공급자</th>
-                        <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 8px; width: 60px;">상호</td>
-                        <td style="border-bottom: 1px dotted #000; padding: 4px 8px;">로스터리 노드 <span style="margin-left:15px; font-weight: bold;">대표자</span><span style="float:right;">김규원</span></td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 8px;">등록번호</td>
-                        <td style="border-bottom: 1px dotted #000; padding: 4px 8px;">336-76-00113</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: bold; border-bottom: 1px dotted #000; padding: 4px 8px; vertical-align: top;">주소</td>
-                        <td style="border-bottom: 1px dotted #000; padding: 4px 8px;">서울특별시 성동구 성수이로 45 지하층<br>로스터리 노드</td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: bold; border-bottom: 1px solid #000; padding: 4px 8px;">전화</td>
-                        <td style="border-bottom: 1px solid #000; padding: 4px 8px;">010-2969-9699</td>
-                    </tr>
-                </table>
+                <div style="display: flex; font-size: 12px; border-top: 1px solid #000; border-bottom: 1px solid #000;">
+                    <div style="background-color: #e5e5e5; font-weight: bold; width: 60px; display: flex; align-items: center; justify-content: center; color: #000;">
+                        공급자
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr style="border-bottom: 1px dotted #000;">
+                                <td style="font-weight: bold; padding: 4px 8px; width: 60px;">상호</td>
+                                <td style="padding: 4px 8px;">로스터리 노드 <span style="margin-left:15px; font-weight: bold;">대표자</span><span style="float:right;">김규원</span></td>
+                            </tr>
+                            <tr style="border-bottom: 1px dotted #000;">
+                                <td style="font-weight: bold; padding: 4px 8px;">등록번호</td>
+                                <td style="padding: 4px 8px;">336-76-00113</td>
+                            </tr>
+                            <tr style="border-bottom: 1px dotted #000;">
+                                <td style="font-weight: bold; padding: 4px 8px; vertical-align: top;">주소</td>
+                                <td style="padding: 4px 8px;">서울특별시 성동구 성수이로 45 지하층<br>로스터리 노드</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold; padding: 4px 8px;">전화</td>
+                                <td style="padding: 4px 8px;">010-2969-9699</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -136,7 +142,7 @@
             <tbody id="outTableBody">
                 </tbody>
             <tfoot>
-                <tr style="border-top: 1px solid #000; border-bottom: 2px solid #000; font-weight: bold;">
+                <tr style="border-top: 1px solid #000; border-bottom: 2px solid #000; font-weight: bold; background-color: #e5e5e5;">
                     <td colspan="3" style="padding: 8px; text-align: center;">합계</td>
                     <td style="padding: 8px; text-align: right;" id="outTotalSupply"></td>
                     <td style="padding: 8px; text-align: right;" id="outTotalTax"></td>
@@ -402,7 +408,17 @@
 
             // 3. 테이블 데이터 조립
             let rowsHtml = '';
+            
+            // 입력된 품목 중 값이 있는 유효한 행만 먼저 수집합니다.
+            let validRows = [];
             document.querySelectorAll('#tableBody tr').forEach(row => {
+                if(row.querySelector('.actual-item-name').value) {
+                    validRows.push(row);
+                }
+            });
+
+            // 수집된 행을 바탕으로 HTML을 구성합니다. (마지막 행은 점선을 그리지 않음)
+            validRows.forEach((row, index) => {
                 const name = row.querySelector('.actual-item-name').value;
                 const details = row.querySelector('.item-details').value.replace(/\n/g, '<br>'); // 엔터 적용
                 const mode = row.querySelector('.calc-mode').value;
@@ -415,19 +431,21 @@
                 const supply = row.querySelector('.row-supply').innerText;
                 const tax = row.querySelector('.row-tax').innerText;
 
-                if(name) {
-                    rowsHtml += `
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px dotted #000; vertical-align: top;">
-                            <div style="font-weight: bold;">${name}</div>
-                            <div style="font-size: 11px; margin-top: 4px;">${details}</div>
-                        </td>
-                        <td style="padding: 8px; border-bottom: 1px dotted #000; text-align: right; vertical-align: top;">${qty}</td>
-                        <td style="padding: 8px; border-bottom: 1px dotted #000; text-align: right; vertical-align: top;">${price}</td>
-                        <td style="padding: 8px; border-bottom: 1px dotted #000; text-align: right; vertical-align: top;">${supply}</td>
-                        <td style="padding: 8px; border-bottom: 1px dotted #000; text-align: right; vertical-align: top;">${tax}</td>
-                    </tr>`;
-                }
+                // 현재 행이 마지막 행인지 확인하여 스타일 지정
+                const isLast = (index === validRows.length - 1);
+                const trBorderStyle = isLast ? 'none' : '1px dotted #000';
+
+                rowsHtml += `
+                <tr style="border-bottom: ${trBorderStyle};">
+                    <td style="padding: 8px; vertical-align: top;">
+                        <div style="font-weight: bold;">${name}</div>
+                        <div style="font-size: 11px; margin-top: 4px;">${details}</div>
+                    </td>
+                    <td style="padding: 8px; text-align: right; vertical-align: top;">${qty}</td>
+                    <td style="padding: 8px; text-align: right; vertical-align: top;">${price}</td>
+                    <td style="padding: 8px; text-align: right; vertical-align: top;">${supply}</td>
+                    <td style="padding: 8px; text-align: right; vertical-align: top;">${tax}</td>
+                </tr>`;
             });
 
             document.getElementById('outTableBody').innerHTML = rowsHtml;
