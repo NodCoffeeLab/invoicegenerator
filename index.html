@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>거래명세서 생성기 (최종 완성본)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
+    <meta charset="UTF-8">
+    <title>거래명세서 생성기 (테스트 버전 4.0)</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f0f0f0; }
         .container { background-color: white; padding: 30px; border-radius: 8px; max-width: 1000px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -15,26 +12,29 @@
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
         th { background-color: #002B49; color: white; border: 1px solid #ccc; padding: 10px; }
         td { border: 1px solid #ccc; padding: 10px; vertical-align: top; }
+        
         select, input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 6px; font-family: inherit; }
         textarea { resize: vertical; }
         input[type="number"] { width: 100px; padding: 6px; margin-bottom: 4px; box-sizing: border-box; }
+        
         .btn { padding: 10px 15px; background-color: #0076CE; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn:hover { background-color: #005fa3; }
         .total-section { text-align: right; font-size: 1.2em; font-weight: bold; padding-top: 20px; }
         .result-box { background-color: #f8fafc; padding: 8px; border-radius: 4px; text-align: right; margin-bottom: 4px; font-size: 13px;}
         .result-label { display: inline-block; width: 60px; text-align: left; color: #64748b; }
         .client-group { display: flex; gap: 10px; align-items: center; }
-        .save-group { text-align: center; margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px; }
-        .save-btn { padding: 10px 20px; margin: 5px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; color: white; }
     </style>
 </head>
 <body>
-    <div class="container" id="printableArea">
+    <div class="container">
         <h1>거래명세서</h1>
+
         <div class="info-section">
             <div class="client-group">
                 <label><b>공급받는자 (귀하): </b></label>
-                <select id="clientPreset" onchange="applyClientPreset(this)" style="width: 150px; margin-bottom: 0;"></select>
+                <select id="clientPreset" onchange="applyClientPreset(this)" style="width: 150px; margin-bottom: 0;">
+                    <option value="">직접 입력...</option>
+                    </select>
                 <input type="text" id="clientName" placeholder="거래처명 입력" style="width:200px; margin-bottom: 0;">
             </div>
             <div>
@@ -51,7 +51,8 @@
                     <th style="width: 35%">품목별 계산 결과</th>
                 </tr>
             </thead>
-            <tbody id="tableBody"></tbody>
+            <tbody id="tableBody">
+                </tbody>
         </table>
 
         <button class="btn" onclick="addRow()">+ 품목 추가하기</button>
@@ -64,16 +65,19 @@
         </div>
     </div>
 
-    <div class="save-group">
-        <button class="save-btn" style="background:#dc3545;" onclick="savePDF()">PDF 저장</button>
-        <button class="save-btn" style="background:#28a745;" onclick="savePNG()">PNG 저장</button>
-        <button class="save-btn" style="background:#ffc107; color:black;" onclick="saveExcel()">엑셀 저장</button>
-    </div>
-
     <script>
         document.getElementById('dateInput').valueAsDate = new Date();
 
-        const clientList = ["카페노갈레스"];
+        /* ==========================================
+           여기가 데이터를 수정하는 곳입니다! (DB 역할)
+           ========================================== */
+        
+        // 1. 주거래처 목록
+        const clientList = [
+            "카페노갈레스"
+        ];
+
+        // 2. 자주 쓰는 품목 데이터베이스
         const frequentItems = {
             "노갈레스: 그린빈 품질분석 및 관련 기술 위탁": { name: "그린빈 품질분석 및 관련 기술 위탁", details: "", price: 2200000 },
             "노갈레스: 카페노갈레스 추가 방문": { name: "카페노갈레스 추가 방문", details: "", price: 80000 },
@@ -87,96 +91,167 @@
             "노갈레스: 출장비 (반일)": { name: "출장비 (반일)", details: "", price: 60000 },
             "노갈레스: 로스팅": { name: "로스팅", details: "", price: 4000 },
             "노갈레스: 배송료": { name: "배송료", details: "", price: 4000 },
+            "노갈레스: 교통비 (철도, 버스)": { name: "교통비 (철도, 버스)", details: "", price: "" },
+            "노갈레스: 교통비 (택시)": { name: "교통비 (택시)", details: "", price: "" },
+            "노갈레스: 소모품": { name: "소모품", details: "", price: "" },
+            "노갈레스: 식비": { name: "식비", details: "", price: "" },
             "로스팅 솔루션": { name: "로스팅 솔루션 서비스", details: "", price: 600000 },
             "로스팅 점검": { name: "로스팅 점검 서비스", details: "", price: 200000 },
-            "출장비 (서울, 과천 등)": { name: "출장비", details: "", price: 60000 },
-            "출장비 (인천, 경기 비수도권)": { name: "출장비", details: "", price: 80000 }
+            "출장비 (서울, 과천, 광주, 구리, 남양주, 성남, 하남)": { name: "출장비", details: "", price: 60000 },
+            "출장비 (인천, 경기 비수도권, 충청)": { name: "출장비", details: "", price: 80000 },
+            "출장비 (전북, 경북, 광역시)": { name: "출장비", details: "", price: 120000 },
+            "출장비 (경남, 전남)": { name: "출장비", details: "", price: 150000 },
+            "출장비 (제주도)": { name: "출장비", details: "항공료, 숙박료에 따라 변동", price: 150000 }
         };
 
+        /* ========================================== */
+
+
+        // 주거래처 드롭다운 초기화 세팅
         const clientSelect = document.getElementById('clientPreset');
         clientList.forEach(client => {
             const option = document.createElement('option');
-            option.value = client; option.textContent = client;
+            option.value = client;
+            option.textContent = client;
             clientSelect.appendChild(option);
         });
 
-        function applyClientPreset(selectObj) { document.getElementById('clientName').value = selectObj.value; }
+        function applyClientPreset(selectObj) {
+            const clientInput = document.getElementById('clientName');
+            clientInput.value = selectObj.value; // 선택한 값을 텍스트 창에 입력
+        }
 
+        // 품목 드롭다운을 위한 옵션 HTML 문자열 생성
         let itemOptionsHTML = '<option value="">-- 품명 선택 (직접 입력) --</option>';
-        for (const key in frequentItems) itemOptionsHTML += `<option value="${key}">${key}</option>`;
+        for (const key in frequentItems) {
+            itemOptionsHTML += `<option value="${key}">${key}</option>`;
+        }
 
         const rowHTML = `
             <td>
-                <select class="item-select" style="background-color: #f8fafc;" onchange="applyItemPreset(this)">${itemOptionsHTML}</select>
-                <input type="text" class="actual-item-name" placeholder="품명">
-                <textarea class="item-details" rows="2" placeholder="세부내역"></textarea>
+                <select class="item-select" style="background-color: #f8fafc;" onchange="applyItemPreset(this)">
+                    ${itemOptionsHTML}
+                </select>
+                <input type="text" class="actual-item-name" placeholder="품명 (명세서 표시용)">
+                <textarea class="item-details" rows="3" placeholder="세부내역 입력 (엔터로 줄바꿈)"></textarea>
             </td>
             <td>
                 <select class="calc-mode" onchange="toggleMode(this)">
-                    <option value="price">수량/단가</option>
-                    <option value="total">총액입력</option>
+                    <option value="price">수량 / 단가 입력</option>
+                    <option value="total">총액 입력 (부가세 역산)</option>
                 </select>
-                <div class="input-price-mode">수량:<input type="number" class="qty" value="1" oninput="calculate()"><br>단가:<input type="number" class="price" oninput="calculate()"></div>
-                <div class="input-total-mode" style="display:none;">총액:<input type="number" class="manual-total" oninput="calculate()"></div>
+                <div class="input-price-mode">
+                    수량: <input type="number" class="qty" value="1" min="1" oninput="calculate()"><br>
+                    단가: <input type="number" class="price" value="0" oninput="calculate()">
+                </div>
+                <div class="input-total-mode" style="display:none;">
+                    총액: <input type="number" class="manual-total" value="0" oninput="calculate()">
+                </div>
             </td>
             <td>
-                <div class="result-box"><span class="result-label">공급가액:</span> <strong class="row-supply">0</strong></div>
-                <div class="result-box"><span class="result-label">세액:</span> <strong class="row-tax">0</strong></div>
-                <div class="result-box"><span class="result-label">품목총액:</span> <strong class="row-total">0</strong></div>
+                <div class="result-box"><span class="result-label">공급가액:</span> <strong class="row-supply">0</strong> 원</div>
+                <div class="result-box"><span class="result-label">세액(10%):</span> <strong class="row-tax">0</strong> 원</div>
+                <div class="result-box"><span class="result-label">품목총액:</span> <strong class="row-total">0</strong> 원</div>
             </td>
         `;
 
-        function addRow() { const tbody = document.getElementById('tableBody'); const row = tbody.insertRow(); row.innerHTML = rowHTML; }
-
-        function applyItemPreset(sel) {
-            const td = sel.parentElement; const item = frequentItems[sel.value];
-            td.querySelector('.actual-item-name').value = item.name;
-            td.querySelector('.item-details').value = item.details;
-            td.nextElementSibling.querySelector('.price').value = item.price;
-            calculate();
+        function addRow() {
+            const tbody = document.getElementById('tableBody');
+            const newRow = tbody.insertRow();
+            newRow.innerHTML = rowHTML;
         }
 
-        function toggleMode(sel) {
-            const td = sel.parentElement;
-            td.querySelector('.input-price-mode').style.display = sel.value === 'price' ? 'block' : 'none';
-            td.querySelector('.input-total-mode').style.display = sel.value === 'total' ? 'block' : 'none';
+        // 품목 선택 시 데이터 덮어쓰기 로직
+        function applyItemPreset(selectElement) {
+            const td = selectElement.parentElement;
+            const nameInput = td.querySelector('.actual-item-name');
+            const detailsTextarea = td.querySelector('.item-details');
+            
+            // 오른쪽 칸(수량/단가) 조작을 위해 가져옴
+            const modeSelect = td.nextElementSibling.querySelector('.calc-mode');
+            const priceInput = td.nextElementSibling.querySelector('.price');
+            const qtyInput = td.nextElementSibling.querySelector('.qty');
+
+            const selectedKey = selectElement.value;
+
+            if (selectedKey && frequentItems[selectedKey]) {
+                const itemData = frequentItems[selectedKey];
+                
+                // 1. 품명과 세부내역 자동 채우기
+                nameInput.value = itemData.name;
+                detailsTextarea.value = itemData.details;
+
+                // 2. 단가 자동 채우기 (단가가 비어있으면 빈칸 처리)
+                modeSelect.value = 'price'; // 기본 입력 모드로 변경
+                toggleMode(modeSelect); // 모드 UI 갱신
+
+                qtyInput.value = 1; // 수량은 항상 1로 초기화
+                if(itemData.price !== "") {
+                    priceInput.value = itemData.price;
+                } else {
+                    priceInput.value = ""; // 직접 입력해야 하는 항목은 비워둠
+                }
+            } else {
+                // '-- 품명 선택 --' 을 고르면 칸을 비워줍니다.
+                nameInput.value = '';
+                detailsTextarea.value = '';
+                priceInput.value = '';
+            }
+            
+            calculate(); // 값이 바뀌었으니 재계산
+        }
+
+        function toggleMode(selectElement) {
+            const td = selectElement.parentElement;
+            const priceModeDiv = td.querySelector('.input-price-mode');
+            const totalModeDiv = td.querySelector('.input-total-mode');
+            
+            if (selectElement.value === 'price') {
+                priceModeDiv.style.display = 'block';
+                totalModeDiv.style.display = 'none';
+            } else {
+                priceModeDiv.style.display = 'none';
+                totalModeDiv.style.display = 'block';
+            }
             calculate();
         }
 
         function calculate() {
-            let sA = 0, tA = 0;
-            document.querySelectorAll('#tableBody tr').forEach(row => {
-                const mode = row.querySelector('.calc-mode').value;
-                let s = 0, t = 0, tot = 0;
-                if(mode === 'price') {
-                    s = row.querySelector('.qty').value * row.querySelector('.price').value;
-                    t = Math.floor(s * 0.1); tot = s + t;
-                } else {
-                    tot = Number(row.querySelector('.manual-total').value);
-                    s = Math.round(tot / 1.1); t = tot - s;
-                }
-                row.querySelector('.row-supply').innerText = s.toLocaleString();
-                row.querySelector('.row-tax').innerText = t.toLocaleString();
-                row.querySelector('.row-total').innerText = tot.toLocaleString();
-                sA += s; tA += t;
-            });
-            document.getElementById('totalAmount').innerText = sA.toLocaleString();
-            document.getElementById('taxAmount').innerText = tA.toLocaleString();
-            document.getElementById('grandTotal').innerText = (sA + tA).toLocaleString();
-        }
+            let sumSupply = 0;
+            let sumTax = 0;
+            const rows = document.querySelectorAll('#tableBody tr');
 
-        // 저장 함수들
-        async function savePDF() {
-            const canvas = await html2canvas(document.getElementById('printableArea'));
-            const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-            pdf.save("거래명세서.pdf");
+            rows.forEach(row => {
+                const mode = row.querySelector('.calc-mode').value;
+                let supply = 0;
+                let tax = 0;
+                let total = 0;
+
+                if (mode === 'price') {
+                    const qty = Number(row.querySelector('.qty').value) || 0;
+                    const price = Number(row.querySelector('.price').value) || 0;
+                    supply = qty * price;
+                    tax = Math.floor(supply * 0.1);
+                    total = supply + tax;
+                } else {
+                    const manualTotal = Number(row.querySelector('.manual-total').value) || 0;
+                    total = manualTotal;
+                    supply = Math.round(total / 1.1);
+                    tax = total - supply;
+                }
+
+                row.querySelector('.row-supply').innerText = supply.toLocaleString();
+                row.querySelector('.row-tax').innerText = tax.toLocaleString();
+                row.querySelector('.row-total').innerText = total.toLocaleString();
+
+                sumSupply += supply;
+                sumTax += tax;
+            });
+
+            document.getElementById('totalAmount').innerText = sumSupply.toLocaleString();
+            document.getElementById('taxAmount').innerText = sumTax.toLocaleString();
+            document.getElementById('grandTotal').innerText = (sumSupply + sumTax).toLocaleString();
         }
-        async function savePNG() {
-            const canvas = await html2canvas(document.getElementById('printableArea'));
-            const a = document.createElement('a'); a.download = '거래명세서.png'; a.href = canvas.toDataURL('image/png'); a.click();
-        }
-        function saveExcel() { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById('itemTable')), '거래명세서.xlsx'); }
 
         window.onload = addRow;
     </script>
