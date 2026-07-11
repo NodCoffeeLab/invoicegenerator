@@ -2,73 +2,101 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>거래명세서 생성기 (파일 추출 버전)</title>
+    <title>거래명세서 생성기</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        /* (이전 스타일 유지, 하단 버튼 스타일 추가) */
         body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f0f0f0; }
         .container { background-color: white; padding: 30px; border-radius: 8px; max-width: 1000px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         h1 { text-align: center; color: #002B49; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
         th { background-color: #002B49; color: white; border: 1px solid #ccc; padding: 10px; }
         td { border: 1px solid #ccc; padding: 10px; vertical-align: top; }
-        .btn-group { text-align: center; margin-top: 20px; }
-        .btn { padding: 10px 20px; margin: 5px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-pdf { background-color: #dc3545; }
-        .btn-img { background-color: #28a745; }
-        .btn-xls { background-color: #ffc107; color: black; }
+        select, input, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; margin-bottom: 5px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .add-btn { background-color: #0076CE; color: white; }
+        .btn-group { text-align: center; margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
+        .btn-pdf { background-color: #dc3545; color: white; }
+        .btn-img { background-color: #28a745; color: white; }
+        .btn-xls { background-color: #ffc107; }
     </style>
 </head>
 <body>
     <div class="container" id="printableArea">
         <h1>거래명세서</h1>
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="clientName" placeholder="거래처명">
+            <input type="date" id="dateInput">
+        </div>
         <table id="itemTable">
+            <thead>
+                <tr>
+                    <th style="width: 50%">품명 및 세부내역</th>
+                    <th style="width: 20%">수량</th>
+                    <th style="width: 30%">단가</th>
+                </tr>
+            </thead>
             <tbody id="tableBody"></tbody>
         </table>
-        <div class="total-section">
-            <p>최종 견적금액: <span id="grandTotal">0</span> 원</p>
+        <button class="btn add-btn" onclick="addRow()">+ 품목 추가</button>
+        <div style="text-align: right; font-size: 1.2em; font-weight: bold; margin-top: 20px;">
+            최종 견적금액(VAT포함): <span id="grandTotal">0</span> 원
         </div>
     </div>
 
     <div class="btn-group">
-        <button class="btn btn-pdf" onclick="savePDF()">PDF 저장 (이메일용)</button>
-        <button class="btn btn-img" onclick="savePNG()">PNG 저장 (메신저용)</button>
-        <button class="btn btn-xls" onclick="saveExcel()">엑셀 저장 (보관용)</button>
+        <button class="btn btn-pdf" onclick="savePDF()">PDF 저장</button>
+        <button class="btn btn-img" onclick="savePNG()">PNG 저장</button>
+        <button class="btn btn-xls" onclick="saveExcel()">엑셀 저장</button>
     </div>
 
     <script>
-        // PDF 저장
+        document.getElementById('dateInput').valueAsDate = new Date();
+
+        function addRow() {
+            const tbody = document.getElementById('tableBody');
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td><input type="text" class="p-name" placeholder="품명"><textarea class="p-detail" placeholder="세부내역"></textarea></td>
+                <td><input type="number" class="p-qty" value="1" oninput="calc()"></td>
+                <td><input type="number" class="p-price" value="0" oninput="calc()"></td>
+            `;
+        }
+
+        function calc() {
+            let total = 0;
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                const qty = row.querySelector('.p-qty').value || 0;
+                const price = row.querySelector('.p-price').value || 0;
+                total += qty * price * 1.1;
+            });
+            document.getElementById('grandTotal').innerText = Math.floor(total).toLocaleString();
+        }
+
         async function savePDF() {
-            const element = document.getElementById('printableArea');
-            const canvas = await html2canvas(element);
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            const el = document.getElementById('printableArea');
+            const canvas = await html2canvas(el);
+            const img = canvas.toDataURL('image/png');
+            const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+            pdf.addImage(img, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
             pdf.save("거래명세서.pdf");
         }
 
-        // PNG 저장
         async function savePNG() {
-            const element = document.getElementById('printableArea');
-            const canvas = await html2canvas(element);
-            const link = document.createElement('a');
-            link.download = '거래명세서.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            const canvas = await html2canvas(document.getElementById('printableArea'));
+            const a = document.createElement('a');
+            a.download = '거래명세서.png';
+            a.href = canvas.toDataURL('image/png');
+            a.click();
         }
 
-        // 엑셀 저장
         function saveExcel() {
-            const table = document.getElementById('itemTable');
-            const wb = XLSX.utils.table_to_book(table, {sheet:"거래명세서"});
+            const wb = XLSX.utils.table_to_book(document.getElementById('itemTable'));
             XLSX.writeFile(wb, '거래명세서.xlsx');
         }
+
+        addRow();
     </script>
 </body>
 </html>
