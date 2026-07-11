@@ -2,101 +2,183 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>거래명세서 생성기</title>
+    <title>거래명세서 생성기 (최종 완성본)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f0f0f0; }
         .container { background-color: white; padding: 30px; border-radius: 8px; max-width: 1000px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         h1 { text-align: center; color: #002B49; }
+        .info-section { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
         th { background-color: #002B49; color: white; border: 1px solid #ccc; padding: 10px; }
         td { border: 1px solid #ccc; padding: 10px; vertical-align: top; }
-        select, input, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; margin-bottom: 5px; }
-        .btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .add-btn { background-color: #0076CE; color: white; }
-        .btn-group { text-align: center; margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
-        .btn-pdf { background-color: #dc3545; color: white; }
-        .btn-img { background-color: #28a745; color: white; }
-        .btn-xls { background-color: #ffc107; }
+        select, input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 6px; font-family: inherit; }
+        textarea { resize: vertical; }
+        input[type="number"] { width: 100px; padding: 6px; margin-bottom: 4px; box-sizing: border-box; }
+        .btn { padding: 10px 15px; background-color: #0076CE; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background-color: #005fa3; }
+        .total-section { text-align: right; font-size: 1.2em; font-weight: bold; padding-top: 20px; }
+        .result-box { background-color: #f8fafc; padding: 8px; border-radius: 4px; text-align: right; margin-bottom: 4px; font-size: 13px;}
+        .result-label { display: inline-block; width: 60px; text-align: left; color: #64748b; }
+        .client-group { display: flex; gap: 10px; align-items: center; }
+        .save-group { text-align: center; margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px; }
+        .save-btn { padding: 10px 20px; margin: 5px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; color: white; }
     </style>
 </head>
 <body>
     <div class="container" id="printableArea">
         <h1>거래명세서</h1>
-        <div style="margin-bottom: 20px;">
-            <input type="text" id="clientName" placeholder="거래처명">
-            <input type="date" id="dateInput">
+        <div class="info-section">
+            <div class="client-group">
+                <label><b>공급받는자 (귀하): </b></label>
+                <select id="clientPreset" onchange="applyClientPreset(this)" style="width: 150px; margin-bottom: 0;"></select>
+                <input type="text" id="clientName" placeholder="거래처명 입력" style="width:200px; margin-bottom: 0;">
+            </div>
+            <div>
+                <label><b>견적일: </b></label>
+                <input type="date" id="dateInput" style="padding:6px; margin-bottom: 0;">
+            </div>
         </div>
+
         <table id="itemTable">
             <thead>
                 <tr>
-                    <th style="width: 50%">품명 및 세부내역</th>
-                    <th style="width: 20%">수량</th>
-                    <th style="width: 30%">단가</th>
+                    <th style="width: 40%">품명 및 세부내역</th>
+                    <th style="width: 25%">입력 방식 및 값</th>
+                    <th style="width: 35%">품목별 계산 결과</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
-        <button class="btn add-btn" onclick="addRow()">+ 품목 추가</button>
-        <div style="text-align: right; font-size: 1.2em; font-weight: bold; margin-top: 20px;">
-            최종 견적금액(VAT포함): <span id="grandTotal">0</span> 원
+
+        <button class="btn" onclick="addRow()">+ 품목 추가하기</button>
+
+        <div class="total-section">
+            <p>공급가액 총합계: <span id="totalAmount">0</span> 원</p>
+            <p>세액 총합계: <span id="taxAmount">0</span> 원</p>
+            <hr>
+            <p>최종 견적금액 (부가세포함): <span id="grandTotal" style="color: #0076CE; font-size: 1.5em;">0</span> 원</p>
         </div>
     </div>
 
-    <div class="btn-group">
-        <button class="btn btn-pdf" onclick="savePDF()">PDF 저장</button>
-        <button class="btn btn-img" onclick="savePNG()">PNG 저장</button>
-        <button class="btn btn-xls" onclick="saveExcel()">엑셀 저장</button>
+    <div class="save-group">
+        <button class="save-btn" style="background:#dc3545;" onclick="savePDF()">PDF 저장</button>
+        <button class="save-btn" style="background:#28a745;" onclick="savePNG()">PNG 저장</button>
+        <button class="save-btn" style="background:#ffc107; color:black;" onclick="saveExcel()">엑셀 저장</button>
     </div>
 
     <script>
         document.getElementById('dateInput').valueAsDate = new Date();
 
-        function addRow() {
-            const tbody = document.getElementById('tableBody');
-            const row = tbody.insertRow();
-            row.innerHTML = `
-                <td><input type="text" class="p-name" placeholder="품명"><textarea class="p-detail" placeholder="세부내역"></textarea></td>
-                <td><input type="number" class="p-qty" value="1" oninput="calc()"></td>
-                <td><input type="number" class="p-price" value="0" oninput="calc()"></td>
-            `;
+        const clientList = ["카페노갈레스"];
+        const frequentItems = {
+            "노갈레스: 그린빈 품질분석 및 관련 기술 위탁": { name: "그린빈 품질분석 및 관련 기술 위탁", details: "", price: 2200000 },
+            "노갈레스: 카페노갈레스 추가 방문": { name: "카페노갈레스 추가 방문", details: "", price: 80000 },
+            "노갈레스: 비즈니스/하베스트": { name: "비즈니스/하베스트 커핑 진행", details: "", price: 100000 },
+            "노갈레스: 브루세션": { name: "브루세션 진행", details: "", price: 100000 },
+            "노갈레스: 세미나 (직접 준비, 진행)": { name: "세미나 (직접 준비, 진행)", details: "준비 과정 및 내용에 따라 상이, 200,000원 기본", price: "" },
+            "노갈레스: 세미나 (지원, 보조)": { name: "세미나 (지원, 보조)", details: "", price: 100000 },
+            "노갈레스: 행사 지원 (진행, 관리)": { name: "행사 지원 (진행, 관리)", details: "", price: 180000 },
+            "노갈레스: 행사 지원 (세팅, 정리)": { name: "행사 지원 (세팅, 정리)", details: "", price: 80000 },
+            "노갈레스: 출장비 (전일)": { name: "출장비 (전일)", details: "", price: 100000 },
+            "노갈레스: 출장비 (반일)": { name: "출장비 (반일)", details: "", price: 60000 },
+            "노갈레스: 로스팅": { name: "로스팅", details: "", price: 4000 },
+            "노갈레스: 배송료": { name: "배송료", details: "", price: 4000 },
+            "로스팅 솔루션": { name: "로스팅 솔루션 서비스", details: "", price: 600000 },
+            "로스팅 점검": { name: "로스팅 점검 서비스", details: "", price: 200000 },
+            "출장비 (서울, 과천 등)": { name: "출장비", details: "", price: 60000 },
+            "출장비 (인천, 경기 비수도권)": { name: "출장비", details: "", price: 80000 }
+        };
+
+        const clientSelect = document.getElementById('clientPreset');
+        clientList.forEach(client => {
+            const option = document.createElement('option');
+            option.value = client; option.textContent = client;
+            clientSelect.appendChild(option);
+        });
+
+        function applyClientPreset(selectObj) { document.getElementById('clientName').value = selectObj.value; }
+
+        let itemOptionsHTML = '<option value="">-- 품명 선택 (직접 입력) --</option>';
+        for (const key in frequentItems) itemOptionsHTML += `<option value="${key}">${key}</option>`;
+
+        const rowHTML = `
+            <td>
+                <select class="item-select" style="background-color: #f8fafc;" onchange="applyItemPreset(this)">${itemOptionsHTML}</select>
+                <input type="text" class="actual-item-name" placeholder="품명">
+                <textarea class="item-details" rows="2" placeholder="세부내역"></textarea>
+            </td>
+            <td>
+                <select class="calc-mode" onchange="toggleMode(this)">
+                    <option value="price">수량/단가</option>
+                    <option value="total">총액입력</option>
+                </select>
+                <div class="input-price-mode">수량:<input type="number" class="qty" value="1" oninput="calculate()"><br>단가:<input type="number" class="price" oninput="calculate()"></div>
+                <div class="input-total-mode" style="display:none;">총액:<input type="number" class="manual-total" oninput="calculate()"></div>
+            </td>
+            <td>
+                <div class="result-box"><span class="result-label">공급가액:</span> <strong class="row-supply">0</strong></div>
+                <div class="result-box"><span class="result-label">세액:</span> <strong class="row-tax">0</strong></div>
+                <div class="result-box"><span class="result-label">품목총액:</span> <strong class="row-total">0</strong></div>
+            </td>
+        `;
+
+        function addRow() { const tbody = document.getElementById('tableBody'); const row = tbody.insertRow(); row.innerHTML = rowHTML; }
+
+        function applyItemPreset(sel) {
+            const td = sel.parentElement; const item = frequentItems[sel.value];
+            td.querySelector('.actual-item-name').value = item.name;
+            td.querySelector('.item-details').value = item.details;
+            td.nextElementSibling.querySelector('.price').value = item.price;
+            calculate();
         }
 
-        function calc() {
-            let total = 0;
+        function toggleMode(sel) {
+            const td = sel.parentElement;
+            td.querySelector('.input-price-mode').style.display = sel.value === 'price' ? 'block' : 'none';
+            td.querySelector('.input-total-mode').style.display = sel.value === 'total' ? 'block' : 'none';
+            calculate();
+        }
+
+        function calculate() {
+            let sA = 0, tA = 0;
             document.querySelectorAll('#tableBody tr').forEach(row => {
-                const qty = row.querySelector('.p-qty').value || 0;
-                const price = row.querySelector('.p-price').value || 0;
-                total += qty * price * 1.1;
+                const mode = row.querySelector('.calc-mode').value;
+                let s = 0, t = 0, tot = 0;
+                if(mode === 'price') {
+                    s = row.querySelector('.qty').value * row.querySelector('.price').value;
+                    t = Math.floor(s * 0.1); tot = s + t;
+                } else {
+                    tot = Number(row.querySelector('.manual-total').value);
+                    s = Math.round(tot / 1.1); t = tot - s;
+                }
+                row.querySelector('.row-supply').innerText = s.toLocaleString();
+                row.querySelector('.row-tax').innerText = t.toLocaleString();
+                row.querySelector('.row-total').innerText = tot.toLocaleString();
+                sA += s; tA += t;
             });
-            document.getElementById('grandTotal').innerText = Math.floor(total).toLocaleString();
+            document.getElementById('totalAmount').innerText = sA.toLocaleString();
+            document.getElementById('taxAmount').innerText = tA.toLocaleString();
+            document.getElementById('grandTotal').innerText = (sA + tA).toLocaleString();
         }
 
+        // 저장 함수들
         async function savePDF() {
-            const el = document.getElementById('printableArea');
-            const canvas = await html2canvas(el);
-            const img = canvas.toDataURL('image/png');
+            const canvas = await html2canvas(document.getElementById('printableArea'));
             const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
-            pdf.addImage(img, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
             pdf.save("거래명세서.pdf");
         }
-
         async function savePNG() {
             const canvas = await html2canvas(document.getElementById('printableArea'));
-            const a = document.createElement('a');
-            a.download = '거래명세서.png';
-            a.href = canvas.toDataURL('image/png');
-            a.click();
+            const a = document.createElement('a'); a.download = '거래명세서.png'; a.href = canvas.toDataURL('image/png'); a.click();
         }
+        function saveExcel() { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById('itemTable')), '거래명세서.xlsx'); }
 
-        function saveExcel() {
-            const wb = XLSX.utils.table_to_book(document.getElementById('itemTable'));
-            XLSX.writeFile(wb, '거래명세서.xlsx');
-        }
-
-        addRow();
+        window.onload = addRow;
     </script>
 </body>
 </html>
