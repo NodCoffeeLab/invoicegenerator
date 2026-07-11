@@ -27,7 +27,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>거래명세서</h1>
+        <h1>거래명세서 생성기 엑셀 내보내기 테스트</h1>
 
         <div class="info-section">
             <div class="client-group">
@@ -259,30 +259,47 @@
         }
 
         window.onload = addRow;
-        function saveToExcel() {
-    // 1. 파일 이름 생성 로직 (거래명세서_거래처명_YYMMDD.xlsx)
-    const client = document.getElementById('clientName').value || "미지정거래처";
+function saveToExcel() {
+    // 1. 파일 이름 설정
+    const client = document.getElementById('clientName').value || "거래처명";
     const dateVal = document.getElementById('dateInput').value.replace(/-/g, '');
-    const dateFormatted = dateVal.length >= 8 ? dateVal.substring(2) : dateVal; // YYYYMMDD -> YYMMDD
-    const fileName = `거래명세서_${client}_${dateFormatted}.xlsx`;
+    const fileName = `거래명세서_${client}_${dateVal}.xlsx`;
 
-    // 2. 엑셀 헤더 및 데이터 구성
-    let data = [['품명', '세부내역', '수량', '단가', '공급가액', '세액', '합계']];
-    
+    // 2. 엑셀 데이터 초기화 (헤더)
+    let rows = [
+        ['품명', '세부내역', '수량', '단가', '공급가액', '세액', '합계']
+    ];
+
+    // 3. 테이블 바디 데이터만 정확히 추출
     document.querySelectorAll('#tableBody tr').forEach(row => {
-        data.push([
-            row.querySelector('.actual-item-name').value,
-            row.querySelector('.item-details').value,
-            row.querySelector('.qty')?.value || row.querySelector('.manual-total') ? '-' : '0',
-            row.querySelector('.price')?.value || '-',
-            row.querySelector('.row-supply').innerText.replace(/,/g, ''),
-            row.querySelector('.row-tax').innerText.replace(/,/g, ''),
-            row.querySelector('.row-total').innerText.replace(/,/g, '')
+        // 입력 방식에 따라 값 추출
+        const mode = row.querySelector('.calc-mode').value;
+        const qty = row.querySelector('.qty').value || 0;
+        const price = row.querySelector('.price').value || 0;
+        const manualTotal = row.querySelector('.manual-total').value || 0;
+        
+        // 결과값 추출 (콤마 제거 후 숫자만)
+        const supply = row.querySelector('.row-supply').innerText.replace(/,/g, '');
+        const tax = row.querySelector('.row-tax').innerText.replace(/,/g, '');
+        const total = row.querySelector('.row-total').innerText.replace(/,/g, '');
+
+        rows.push([
+            row.querySelector('.actual-item-name').value,      // 품명
+            row.querySelector('.item-details').value,          // 세부내역
+            mode === 'price' ? qty : '-',                      // 수량
+            mode === 'price' ? price : '-',                    // 단가
+            supply,
+            tax,
+            total
         ]);
     });
 
-    // 3. 엑셀 파일 생성
-    const ws = XLSX.utils.aoa_to_sheet(data);
+    // 4. 엑셀 생성
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    
+    // 열 너비 자동 조정 (선택 사항이지만 보기 좋습니다)
+    ws['!cols'] = [{wch: 20}, {wch: 30}, {wch: 10}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}];
+    
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "거래명세서");
     XLSX.writeFile(wb, fileName);
