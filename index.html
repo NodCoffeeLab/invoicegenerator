@@ -345,7 +345,7 @@
         function saveToExcel() {
             const client = document.getElementById('clientName').value || "거래처명";
             const dateVal = document.getElementById('dateInput').value.replace(/-/g, '');
-            const fileName = `거래명세서_${client}_${dateVal}.xlsx`;
+            const fileName = `거래명세서_로스터리노드_${client}_${dateVal}.xlsx`;
 
             const totalSupply = document.getElementById('totalAmount').innerText.replace(/,/g, '');
             const totalTax = document.getElementById('taxAmount').innerText.replace(/,/g, '');
@@ -462,7 +462,7 @@
                 });
                 
                 const link = document.createElement('a');
-                link.download = `거래명세서_${clientName}_${dateStr.replace(/-/g, '')}.png`;
+                link.download = `거래명세서_로스터리노드_${clientName}_${dateStr.replace(/-/g, '')}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
             } catch (error) {
